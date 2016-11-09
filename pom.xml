@@ -22,13 +22,8 @@
 		<tag>HEAD</tag>
 	</scm>
 
-	<modules>
-		<module>cf-client</module>
-		<module>cf-browser</module>
-		<module>cf-coapbench</module>
-		<module>cf-server</module>
+	<modules>		
 		<module>cf-rd</module>
-		<module>cf-polyfill</module>
 	</modules>
 
 	<repositories>
