@@ -34,6 +34,7 @@ import org.eclipse.californium.core.WebLink;
 import org.eclipse.californium.core.coap.CoAP;
 import org.eclipse.californium.core.coap.CoAP.ResponseCode;
 import org.eclipse.californium.core.coap.LinkFormat;
+import org.eclipse.californium.core.coap.MediaTypeRegistry;
 import org.eclipse.californium.core.coap.Request;
 import org.eclipse.californium.core.server.resources.CoapExchange;
 import org.eclipse.californium.core.server.resources.Resource;
@@ -48,8 +49,8 @@ public class RDNodeResource extends CoapResource {
 	 * to update its entry before the RD enforces validation and removes the endpoint
 	 * if it does not respond.
 	 */
-	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor(//
-			new Utils.DaemonThreadFactory("RDLifeTime#"));
+	private static ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+			//new Utils.DaemonThreadFactory("RDLifeTime#"));
 	
 	private int lifeTime = 86400;
 	
@@ -226,7 +227,14 @@ public class RDNodeResource extends CoapResource {
 	 */
 	@Override
 	public void handleGET(CoapExchange exchange) {
-		exchange.respond(ResponseCode.FORBIDDEN, "RD update handle");
+      String result = toLinkFormat(null);
+      if (result.isEmpty()) {
+		exchange.respond(ResponseCode.NOT_FOUND);
+      } else {
+		// also remove trailing comma
+		exchange.respond(ResponseCode.CONTENT, result, MediaTypeRegistry.APPLICATION_LINK_FORMAT);
+	  }
+		//exchange.respond(ResponseCode.FORBIDDEN, "RD update handle");
 	}
 	
 	/*
@@ -294,7 +302,8 @@ public class RDNodeResource extends CoapResource {
 		Set<WebLink> links = LinkFormat.parse(linkFormat);
 		
 		for (WebLink l : links) {
-			
+			if(l.getURI().equals("/"))
+              continue;
 			CoapResource resource = addNodeResource(l.getURI().substring(l.getURI().indexOf("/")));
 			
 			// clear attributes to make registration idempotent
